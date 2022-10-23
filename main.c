@@ -8,7 +8,8 @@
 
 void render_screen(int* ball_y, int* ball_x, int* score_1, int* score_2, int* racket_1_y, int* racket_2_y);
 void clear_screen(HANDLE hConsole);
-void step(int* ball_y, int* ball_x, int* step_y, int* step_x, int* score_1, int* score_2);
+void step(int* ball_y, int* ball_x, int* step_y, int* step_x, int* score_1, int* score_2, int* racket_1_y, int* racket_2_y);
+void move_ball(int* y, int* x, int* step_y, int* step_x);
 
 int main() {
     HANDLE hStdout;
@@ -19,7 +20,7 @@ int main() {
     int racket_2_y = RACKET_DEFAULT_Y;
     int step_x = 1;
     int step_y = 1;
-    int score_1 = 11;
+    int score_1 = 0;
     int score_2 = 0;
     int game = 0;
     printf("Press any key to start\n");
@@ -28,7 +29,7 @@ int main() {
         clear_screen(hStdout);
     }
     while (game == 1) {
-        step(&ball_y, &ball_x, &step_y, &step_x, &score_1, &score_2);
+        step(&ball_y, &ball_x, &step_y, &step_x, &score_1, &score_2, &racket_1_y, &racket_2_y);
         clear_screen(hStdout);
         render_screen(&ball_y, &ball_x, &score_1, &score_2, &racket_1_y, &racket_2_y);
         printf("%d  %d\n", ball_x, ball_y);
@@ -49,9 +50,8 @@ void render_screen(int* ball_y, int* ball_x, int* score_1, int* score_2, int* ra
                 printf("-");
             } else if (j == 0 || j == 39 || j == 40 || j == XMAX) {
                 printf("|");
-            } else if ((i == *racket_1_y || i == *racket_1_y-1 || i == *racket_1_y+1 || 
-                        i == *racket_2_y || i == *racket_2_y-1 || i == *racket_2_y+1) 
-                        && (j == 1 || j == 78)) {
+            } else if (((i == *racket_1_y || i == *racket_1_y-1 || i == *racket_1_y+1) && j == 1) ||
+                       ((i == *racket_2_y || i == *racket_2_y-1 || i == *racket_2_y+1) && j == 78)) {
                 printf("#");
             } else {
                 printf(" ");
@@ -62,26 +62,36 @@ void render_screen(int* ball_y, int* ball_x, int* score_1, int* score_2, int* ra
     printf("Player 1 %30d  %-30d Player 2", *score_1, *score_2);
 }
 
-void step(int* y, int* x, int* step_y, int* step_x, int* score_1, int* score_2) {
+void step(int* y, int* x, int* step_y, int* step_x, int* score_1, int* score_2, int* racket_1_y, int* racket_2_y) {
     char c = getchar();
     if (c == ' ') {
-        *y = *y + *step_y;
-        *x = *x + *step_x;
-        if (*y == YMAX-1 || *y == 1) {
-            *step_y = -*step_y;
-        }
-        if (*x == XMAX) {
-            *score_1 = *score_1 + 1;
-            *x = BALL_DEFAULT_X;
-            *y = BALL_DEFAULT_Y;
-            *step_x = -*step_x;
-        }
-        if (*x == 0) {
-            *score_2 = *score_2 + 1;
-            *x = BALL_DEFAULT_X-1;
-            *y = BALL_DEFAULT_Y;
-            *step_x = -*step_x;
-        }
+    } else if ((c == 'A' || c == 'a') && *racket_1_y != 2) {
+        *racket_1_y = *racket_1_y - 1;
+        move_ball(y, x, step_y, step_x);
+    } else if (c == 'Z' || c == 'z') {
+        *racket_1_y = *racket_1_y + 1;
+        move_ball(y, x, step_y, step_x);
+    }
+
+    if (*x == XMAX) {
+        *score_1 = *score_1 + 1;
+        *x = BALL_DEFAULT_X;
+        *y = BALL_DEFAULT_Y;
+        *step_x = -*step_x;
+    }
+    if (*x == 0) {
+        *score_2 = *score_2 + 1;
+        *x = BALL_DEFAULT_X-1;
+        *y = BALL_DEFAULT_Y;
+        *step_x = -*step_x;
+    }
+}
+
+void move_ball(int* y, int* x, int* step_y, int* step_x) {
+    *y = *y + *step_y;
+    *x = *x + *step_x;
+    if (*y == YMAX-1 || *y == 1) {
+        *step_y = -*step_y;
     }
 }
 
